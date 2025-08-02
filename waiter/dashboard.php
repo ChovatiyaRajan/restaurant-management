@@ -1,16 +1,6 @@
-<!-- Waiter dashboard -->
-
 <?php
-session_start();
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'waiter') {
-  header("Location: /restaurant-management/waiter/dashboard.php");
-  exit();
-}
-?>
-
-<?php 
-require '../includes/auth.php'; 
-require '../config/db.php'; 
+require '../includes/auth.php';
+require '../config/db.php';
 include '../includes/header.php';
 
 if ($_SESSION['user']['role'] !== 'waiter') {
@@ -20,7 +10,6 @@ if ($_SESSION['user']['role'] !== 'waiter') {
 
 $waiter_id = $_SESSION['user']['id'];
 
-// Get order count
 $orderResult = $conn->query("SELECT COUNT(*) AS total_orders FROM restaurant_orders WHERE waiter_id = $waiter_id");
 $orderCount = $orderResult->fetch_assoc()['total_orders'];
 ?>

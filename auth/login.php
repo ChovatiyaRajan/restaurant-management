@@ -1,8 +1,8 @@
 <?php
+session_start();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
 require '../config/db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -15,17 +15,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $result = $stmt->get_result();
 
   if ($user = $result->fetch_assoc()) {
+    // For plain text password comparison (not recommended)
+    // if ($password === $user['password']) {
+
+    // If passwords are hashed (recommended)
     if ($password === $user['password']) {
       $_SESSION['user'] = $user;
-      if ($user['role'] == 'admin') {
-        header("Location: /restaurant-management/admin/dashboard.php");
-      } else {
-        header("Location: /restaurant-management/waiter/dashboard.php");
+      $_SESSION['user_id'] = $user['id'];
+      $_SESSION['role'] = $user['role'];
 
+      if ($user['role'] === 'admin') {
+        header("Location: /restaurant-management/admin/dashboard.php");
+      } else if ($user['role'] === 'waiter') {
+        header("Location: /restaurant-management/waiter/dashboard.php");
+      } else {
+        header("Location: /restaurant-management/auth/login.php");
       }
       exit();
     }
   }
+
   $error = "Invalid email or password";
 }
 ?>
