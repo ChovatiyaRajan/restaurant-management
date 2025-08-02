@@ -3,53 +3,41 @@ session_start();
 require_once('../../config/db.php');
 require_once('../../includes/auth.php');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $waiter_id = $_SESSION['user']['id'];
-    $table_number = $_POST['table_number'];
-    $created_at = date('Y-m-d H:i:s');
+$waiter_id = $_SESSION['user']['id'];
 
-    // Insert into orders table
-    $stmt = $conn->prepare("INSERT INTO orders (waiter_id, table_number, status, created_at) VALUES (?, ?, 'pending', ?)");
-    $stmt->bind_param("iis", $waiter_id, $table_number, $created_at);
-    $stmt->execute();
-    $order_id = $stmt->insert_id;
-    $stmt->close();
+$sql = "SELECT o.id, t.table_no, o.order_time
+        FROM restaurant_orders o
+        LEFT JOIN restaurant_tables t ON o.table_id = t.id
+        WHERE o.waiter_id = $waiter_id
+        ORDER BY o.order_time DESC";
 
-    // Insert into order_items table
-    foreach ($_POST['items'] as $item_id => $qty) {
-        if ($qty > 0) {
-            $stmt = $conn->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity) VALUES (?, ?, ?)");
-            $stmt->bind_param("iii", $order_id, $item_id, $qty);
-            $stmt->execute();
-        }
-    }
-
-    header('Location: my_orders.php?success=1');
-    exit();
-}
-
-// Fetch menu items
-$menu_items = $conn->query("SELECT * FROM menu_items WHERE is_available = 1");
+$orders = $conn->query($sql);
 ?>
 
 <?php include('../../includes/header.php'); ?>
 <div class="container mt-5">
-    <h2>Place New Order</h2>
-    <form method="POST" action="">
-        <div class="mb-3">
-            <label for="table_number" class="form-label">Table Number</label>
-            <input type="number" name="table_number" class="form-control" required>
-        </div>
-
-        <h4>Menu</h4>
-        <?php while ($item = $menu_items->fetch_assoc()) : ?>
-            <div class="mb-2">
-                <strong><?= htmlspecialchars($item['name']) ?></strong> - ₹<?= $item['price'] ?>
-                <input type="number" name="items[<?= $item['id'] ?>]" min="0" placeholder="Qty" class="form-control w-25 d-inline ms-2">
-            </div>
-        <?php endwhile; ?>
-
-        <button type="submit" class="btn btn-primary mt-3">Place Order</button>
-    </form>
+    <h2>My Orders</h2>
+    <a href="add_order.php" class="btn btn-primary mb-3">+ Add New Order</a>
+    <?php if (isset($_GET['success'])): ?>
+        <div class="alert alert-success">Order placed successfully!</div>
+    <?php endif; ?>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Table</th>
+                <th>Date/Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($row = $orders->fetch_assoc()) : ?>
+                <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td><?= $row['table_no'] ?? '-' ?></td>
+                    <td><?= date('d M Y, H:i', strtotime($row['order_time'])) ?></td>
+                </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
 </div>
 <?php include('../../includes/footer.php'); ?>

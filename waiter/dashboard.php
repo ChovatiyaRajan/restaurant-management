@@ -24,7 +24,6 @@ $orderCount = $orderResult->fetch_assoc()['total_orders'];
 </div>
 
 <a href="menu/index.php" class="btn btn-outline-primary">View Food Menu</a>
-<a href="orders/create.php" class="btn btn-primary">Place Order</a>
 <a href="orders/index.php" class="btn btn-outline-secondary">View Orders</a>
 <a href="orders/place_order.php" class="btn btn-success">Place New Order</a>
 
